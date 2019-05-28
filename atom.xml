@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://awkj.github.io</id>
     <title>Gridea</title>
-    <updated>2019-05-28T18:49:15.658Z</updated>
+    <updated>2019-05-28T18:57:39.964Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://awkj.github.io"/>
     <link rel="self" href="https://awkj.github.io/atom.xml"/>
@@ -10,6 +10,74 @@
     <logo>https://awkj.github.io/images/avatar.png</logo>
     <icon>https://awkj.github.io/favicon.ico</icon>
     <rights>All rights reserved 2019, Gridea</rights>
+    <entry>
+        <title type="html"><![CDATA[在群晖上使用 Docker 运行 ElasticSearch]]></title>
+        <id>https://awkj.github.io/post/zai-qun-hui-shang-shi-yong-docker-yun-xing-elasticsearch</id>
+        <link href="https://awkj.github.io/post/zai-qun-hui-shang-shi-yong-docker-yun-xing-elasticsearch">
+        </link>
+        <updated>2019-05-28T18:50:02.000Z</updated>
+        <content type="html"><![CDATA[<h3 id="设置系统的内存限制">设置系统的内存限制</h3>
+<p><strong>临时修改</strong></p>
+<pre><code class="language-sh">sysctl -w vm.max_map_count=262144
+</code></pre>
+<p><strong>持久修改</strong></p>
+<pre><code class="language-sh">echo “vm.max_map_count=262144” &gt; /etc/sysctl.conf
+sysctl -p
+</code></pre>
+<h3 id="bootstrap-设置普通linux-似乎不需要">bootstrap 设置(普通Linux 似乎不需要)</h3>
+<p>在 docker-compose.yml 中添加</p>
+<pre><code class="language-sh">bootstrap.memory_lock=false
+bootstrap.system_call_filter=false
+</code></pre>
+<p>完整的配置</p>
+<pre><code class="language-yaml">version: &quot;2.2&quot;
+services:
+    elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch:6.8.0
+        container_name: elasticsearch
+        environment:
+            - cluster.name=docker-cluster
+            - bootstrap.memory_lock=true
+            - &quot;ES_JAVA_OPTS=-Xms512m -Xmx512m&quot;
+        ulimits:
+            memlock:
+                soft: -1
+                hard: -1
+        volumes:
+            - esdata1:/usr/share/elasticsearch/data
+        ports:
+            - 9200:9200
+        networks:
+            - esnet
+    elasticsearch2:
+        image: docker.elastic.co/elasticsearch/elasticsearch:6.8.0
+        container_name: elasticsearch2
+        environment:
+            - cluster.name=docker-cluster
+            - bootstrap.memory_lock=true
+            - &quot;ES_JAVA_OPTS=-Xms512m -Xmx512m&quot;
+            - &quot;discovery.zen.ping.unicast.hosts=elasticsearch&quot;
+        ulimits:
+            memlock:
+                soft: -1
+                hard: -1
+        volumes:
+            - esdata2:/usr/share/elasticsearch/data
+        networks:
+            - esnet
+
+volumes:
+    esdata1:
+        driver: local
+    esdata2:
+        driver: local
+
+networks:
+    esnet:
+
+</code></pre>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[Hello Gridea]]></title>
         <id>https://awkj.github.io/post/hello-gridea</id>
